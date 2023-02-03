@@ -8,7 +8,7 @@ import (
 	"github.com/asolpshinning/db2-warehouse/jobs/auth"
 )
 
-func GetResultFromJob(username, password, host, sqlCommand string, limit int) (map[string]interface{}, error) {
+func getResultFromJob(username, password, host, sqlCommand string, limit int) (map[string]interface{}, error) {
 
 	token, err := auth.RequestToken(username, password, host)
 	if err != nil {
@@ -47,4 +47,19 @@ func GetResultFromJob(username, password, host, sqlCommand string, limit int) (m
 	}
 
 	return data, nil
+}
+
+func GetResultFromJob(username, password, host, sqlCommand string, limit int) (map[string]interface{}, error) {
+
+	result, err := getResultFromJob(username, password, host, sqlCommand, limit)
+	if err != nil {
+		return nil, err
+	}
+	for result["status"] != "completed" {
+		result, err = getResultFromJob(username, password, host, sqlCommand, limit)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
